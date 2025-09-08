@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Now • Your Portfolio Project</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ---------- STYLES ---------- */
+    :root {
+      --bg: #0f172a;
+      --card: #111827cc;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --danger: #f87171;
+      --ok: #34d399;
+      --shadow: 0 10px 30px rgba(2,6,23,.35);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Inter, system-ui;
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 10% 10%, #1e293b 0%, #0b1021 55%, #060913 100%), var(--bg);
+      display: grid; place-items: center; padding: 24px;
+    }
+    .app {
+      width: 100%; max-width: 880px;
+      background: linear-gradient(180deg, rgba(17,24,39,.75), rgba(17,24,39,.5));
+      border: 1px solid rgba(148,163,184,.25);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden; backdrop-filter: blur(10px);
+    }
+    .header { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid rgba(148,163,184,.2); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand .logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #38bdf8, #34d399); display: grid; place-items: center; font-weight: 800; color: #0b1021; }
+    .brand h1 { font-size: 18px; margin: 0; }
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .controls form { display: flex; gap: 10px; align-items: center; }
+    .input { background: rgba(2,6,23,.6); border: 1px solid rgba(148,163,184,.25); color: var(--text); padding: 10px 12px; border-radius: 12px; outline: none; min-width: 250px; }
+    .btn {
+      background: rgba(56,189,248,.15); border: 1px solid rgba(56,189,248,.5); color: #cff0ff;
+      padding: 10px 14px; border-radius: 12px; cursor: pointer; font-weight: 600;
+    }
+    .btn:hover { background: rgba(56,189,248,.25); }
+    .btn-ghost { background: rgba(2,6,23,.4); border-color: rgba(148,163,184,.35); color: var(--text); }
+    .unit-toggle { display: inline-flex; border: 1px solid rgba(148,163,184,.25); border-radius: 12px; overflow: hidden; }
+    .unit-toggle button { background: transparent; border: none; padding: 10px 12px; color: var(--text); cursor: pointer; font-weight: 600; }
+    .unit-toggle button.active { background: rgba(56,189,248,.18); color: #eafaff; }
+    .content { padding: 22px; display: grid; gap: 18px; }
+    .status { min-height: 22px; color: var(--muted); }
+    .status.error { color: var(--danger); }
+    .grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 18px; }
+    @media (max-width: 780px) { .grid { grid-template-columns: 1fr; } .controls form .input { min-width: 0; width: 100%; } }
+    .card { background: rgba(2,6,23,.35); border: 1px solid rgba(148,163,184,.2); border-radius: 16px; padding: 18px; }
+    .hero { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; }
+    .hero .meta { display: grid; gap: 8px; }
+    .city { font-size: 28px; font-weight: 700; margin: 0; }
+    .time { color: var(--muted); font-size: 14px; }
+    .temp { display: flex; align-items: center; gap: 12px; }
+    .temp .value { font-size: 54px; font-weight: 800; }
+    .temp .desc { color: var(--muted); text-transform: capitalize; font-weight: 600; }
+    .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+    .kpi { background: rgba(2,6,23,.4); border: 1px dashed rgba(148,163,184,.25); border-radius: 12px; padding: 12px; text-align: center; }
+    .kpi .label { color: var(--muted); font-size: 12px; }
+    .kpi .val  {font-size: 18px;font-weight: 700;}
+    .tips { display: grid; gap: 8px; font-size: 14px; color: var(--muted); }
+    footer { padding: 6px 20px 16px; color: var(--muted); font-size: 12px; text-align: center; }
+    a { color: #9bdcff; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="brand">
+        <div class="logo">W</div>
+        <h1>Weather Now</h1>
+      </div>
+      <div class="controls">
+        <form id="searchForm">
+          <input id="cityInput" class="input" type="text" placeholder="Search city (e.g., Bhubaneswar)" />
+          <button class="btn" type="submit">Search</button>
+        </form>
+        <button id="locBtn" class="btn btn-ghost" type="button">Use my location</button>
+        <div class="unit-toggle">
+          <button id="unitC" class="active">°C</button>
+          <button id="unitF">°F</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="status" class="status">Type a city or use your location. 💙</div>
+      <section class="card" id="result" hidden>
+        <div class="hero">
+          <div class="meta">
+            <h2 class="city" id="city">—</h2>
+            <div class="time" id="time">—</div>
+            <div class="temp">
+              <span class="value" id="temp">—</span>
+              <span class="desc" id="desc">—</span>
+            </div>
+          </div>
+          <img id="icon" alt="Weather icon" width="110" height="110" />
+        </div>
+        <div class="kpis">
+          <div class="kpi"><div class="label">Feels like</div><div class="val" id="feels">—</div></div>
+          <div class="kpi"><div class="label">Humidity</div><div class="val" id="hum">—</div></div>
+          <div class="kpi"><div class="label">Wind</div><div class="val" id="wind">—</div></div>
+        </div>
+      </section>
+    </div>
+    
+  </div>
+
+
+
+
+  <script>
+    const API_KEY = "573655ec0f08dba48822acb835371677"; // replace with your API key
+    const BASE = "https://api.openweathermap.org/data/2.5/weather";
+    let currentUnits = "metric";
+    let lastQuery = "";
+
+    const el = (id) => document.getElementById(id);
+    const statusEl = el("status"), resultEl = el("result");
+    const cityEl = el("city"), timeEl = el("time"), tempEl = el("temp"), descEl = el("desc");
+    const iconEl = el("icon"), feelsEl = el("feels"), humEl = el("hum"), windEl = el("wind");
+
+    function setStatus(msg, error=false) {
+      statusEl.textContent = msg;
+      statusEl.className = error ? "status error" : "status";
+    }
+
+    async function fetchWeather(q) {
+      lastQuery = q;
+      try {
+        setStatus("Fetching...");
+        const res = await fetch(`${BASE}?q=${encodeURIComponent(q)}&appid=${API_KEY}&units=${currentUnits}`);
+        if (!res.ok) throw new Error("City not found");
+        const data = await res.json();
+        render(data);
+        setStatus("Weather loaded!");
+      } catch (e) {
+        setStatus(e.message, true);
+        resultEl.hidden = true;
+      }
+    }
+
+    function render(d) {
+      resultEl.hidden = false;
+      cityEl.textContent = `${d.name}, ${d.sys.country}`;
+      timeEl.textContent = new Date(d.dt * 1000).toLocaleString();
+      tempEl.textContent = Math.round(d.main.temp) + (currentUnits === "metric" ? "°C" : "°F");
+      descEl.textContent = d.weather[0].description;
+      feelsEl.textContent = Math.round(d.main.feels_like) + (currentUnits === "metric" ? "°C" : "°F");
+      humEl.textContent = d.main.humidity + "%";
+      windEl.textContent = d.wind.speed + (currentUnits === "metric" ? " m/s" : " mph");
+      iconEl.src = `https://openweathermap.org/img/wn/${d.weather[0].icon}@2x.png`;
+      iconEl.alt = d.weather[0].description;
+    }
+
+    document.getElementById("searchForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const q = el("cityInput").value.trim();
+      if (q) fetchWeather(q);
+    });
+
+    // Unit toggle logic
+    document.getElementById("unitC").addEventListener("click", () => {
+      if (currentUnits !== "metric") {
+        currentUnits = "metric";
+        el("unitC").classList.add("active");
+        el("unitF").classList.remove("active");
+        if (lastQuery) fetchWeather(lastQuery);
+      }
+    });
+    document.getElementById("unitF").addEventListener("click", () => {
+      if (currentUnits !== "imperial") {
+        currentUnits = "imperial";
+        el("unitF").classList.add("active");
+        el("unitC").classList.remove("active");
+        if (lastQuery) fetchWeather(lastQuery);
+      }
+    });
+
+    // Optional: Use my location button
+    document.getElementById("locBtn").addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        setStatus("Geolocation not supported.", true);
+        return;
+      }
+      setStatus("Getting your location...");
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          fetchWeatherByCoords(latitude, longitude);
+        },
+        () => setStatus("Could not get location.", true)
+      );
+    });
+
+    async function fetchWeatherByCoords(lat, lon) {
+      try {
+        setStatus("Fetching...");
+        const res = await fetch(`${BASE}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=${currentUnits}`);
+        if (!res.ok) throw new Error("Location not found");
+        const data = await res.json();
+        render(data);
+        setStatus("Weather loaded!");
+        lastQuery = `${data.name}`;
+      } catch (e) {
+        setStatus(e.message, true);
+        resultEl.hidden = true;
+      }
+    }
+  </script>
+
+
+</body>
+</html>
